@@ -18,9 +18,9 @@ def fetch_all_genres():
     genres = response.json().get("genres", [])
     return genres
 
-# Fetch movies by genre, filter for adults, exclude animation, and restrict by release date
+# Fetch movies by genre, filter for adults, exclude animation, and restrict by release date and IMDb score
 def fetch_movies(genre_id=None, randomize=True, limit=5):
-    """Fetches movies using TMDb API based on genre and adult filter."""
+    """Fetches movies using TMDb API based on genre, adult filter, and IMDb score."""
     params = {
         "api_key": TMDB_API_KEY,
         "sort_by": "vote_average.desc",
@@ -34,15 +34,18 @@ def fetch_movies(genre_id=None, randomize=True, limit=5):
 
     response = requests.get(f"{BASE_URL}discover/movie", params=params)
     movies = response.json().get("results", [])
+
+    # Filter movies with IMDb score higher than 6.5
+    movies = [movie for movie in movies if movie["vote_average"] > 6.5]
     
     if randomize:
         movies = random.sample(movies, min(len(movies), limit))
     
     return movies[:limit]  # Only return the top 5 movies
 
-# Fetch TV shows by genre, filter for adults, exclude animation
+# Fetch TV shows by genre, filter for adults, exclude animation, and restrict by release date and IMDb score
 def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
-    """Fetches TV shows using TMDb API based on genre and adult filter."""
+    """Fetches TV shows using TMDb API based on genre, adult filter, and IMDb score."""
     params = {
         "api_key": TMDB_API_KEY,
         "sort_by": "vote_average.desc",
@@ -56,11 +59,15 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
 
     response = requests.get(f"{BASE_URL}discover/tv", params=params)
     tv_shows = response.json().get("results", [])
+
+    # Filter TV shows with IMDb score higher than 6.5
+    tv_shows = [tv_show for tv_show in tv_shows if tv_show["vote_average"] > 6.5]
     
     if randomize:
         tv_shows = random.sample(tv_shows, min(len(tv_shows), limit))
     
     return tv_shows[:limit]  # Only return the top 3 TV shows
+
 
 # Fetch random movies or TV shows from specific genres for the Surprise Me button
 def fetch_surprise_me_movies_or_tv_shows(is_tv_show=False):
