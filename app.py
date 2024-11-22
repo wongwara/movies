@@ -32,9 +32,7 @@ def fetch_movies(genre_id=None, randomize=True, limit=5):
 
     response = requests.get(f"{BASE_URL}discover/movie", params=params)
     movies = response.json().get("results", [])
-    
-    # Filter movies with IMDb rating > 6.5
-    movies = [movie for movie in movies if movie.get("vote_average", 0) > 6.5]
+
     
     if randomize:
         movies = random.sample(movies, min(len(movies), limit))
@@ -56,9 +54,6 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
 
     response = requests.get(f"{BASE_URL}discover/tv", params=params)
     tv_shows = response.json().get("results", [])
-    
-    # Filter TV shows with IMDb rating > 6.5
-    tv_shows = [show for show in tv_shows if show.get("vote_average", 0) > 6.5]
     
     if randomize:
         tv_shows = random.sample(tv_shows, min(len(tv_shows), limit))
