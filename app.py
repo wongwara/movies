@@ -22,9 +22,9 @@ def fetch_movies(genre_id=None, randomize=True, limit=5):
     """Fetches movies using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        # "sort_by": "vote_average.desc",
-        "vote_count.gte": 25,
+        "sort_by": "vote_average.desc",  # Sort by highest vote average
         "include_adult": True,  # Only movies for adults
+        "without_genres": "16",  # Exclude animated movies
         "primary_release_date.gte": "1999-01-01",  # Filter movies released after 1999
     }
     if genre_id:
@@ -32,6 +32,9 @@ def fetch_movies(genre_id=None, randomize=True, limit=5):
 
     response = requests.get(f"{BASE_URL}discover/movie", params=params)
     movies = response.json().get("results", [])
+    
+    # Filter movies with IMDb rating > 6.5
+    movies = [movie for movie in movies if movie.get("vote_average", 0) > 6.5]
     
     if randomize:
         movies = random.sample(movies, min(len(movies), limit))
@@ -43,9 +46,9 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
     """Fetches TV shows using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        # "sort_by": "vote_average.desc",
-        "vote_count.gte": 25,
+        "sort_by": "vote_average.desc",  # Sort by highest vote average
         "include_adult": True,  # Only TV shows for adults
+        "without_genres": "16",  # Exclude animated TV shows
         "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
     }
     if genre_id:
@@ -54,10 +57,13 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
     response = requests.get(f"{BASE_URL}discover/tv", params=params)
     tv_shows = response.json().get("results", [])
     
+    # Filter TV shows with IMDb rating > 6.5
+    tv_shows = [show for show in tv_shows if show.get("vote_average", 0) > 6.5]
+    
     if randomize:
         tv_shows = random.sample(tv_shows, min(len(tv_shows), limit))
     
-    return tv_shows[:limit]  # Only return the top 3 TV shows
+    return tv_shows[:limit]  # Only return the top 5 TV shows
 
 # Fetch random movies or TV shows from specific genres for the Surprise Me button
 def fetch_surprise_me_movies_or_tv_shows(is_tv_show=False):
@@ -88,7 +94,6 @@ priority_genres = [{"id": 27, "name": "Horror"}, {"id": 53, "name": "Thriller"},
 other_genres = [g for g in genres if g["id"] not in [27, 53, 9648]]
 all_genres = priority_genres + other_genres
 
-
 # Genre Selection Filter: Use multiselect for genre selection
 genre_buttons = [g["name"] for g in all_genres]
 # Genre Selection Filter: Only show Horror, Thriller, and Mystery genres
@@ -112,7 +117,7 @@ if surprise_me_button:
     if mode == "Movies":
         random_movie = fetch_surprise_me_movies_or_tv_shows(is_tv_show=False)
         if not random_movie:
-            st.warning("No movies found in the selected genres with a score higher than 6.5!")
+            st.warning("No movies found in the selected genres with an IMDb score higher than 6.5!")
         for movie in random_movie:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -122,7 +127,7 @@ if surprise_me_button:
     elif mode == "TV Shows":
         random_tv_show = fetch_surprise_me_movies_or_tv_shows(is_tv_show=True)
         if not random_tv_show:
-            st.warning("No TV shows found in the selected genres with a score higher than 6.5!")
+            st.warning("No TV shows found in the selected genres with an IMDb score higher than 6.5!")
         else:
             for tv_show in random_tv_show:
                 release_year = tv_show.get("first_air_date", "").split("-")[0]
@@ -140,7 +145,7 @@ if submit_button:
         st.header(f"🎥 Movie Suggestions")
         movies = fetch_movies(genre_id=selected_genre_ids, randomize=True, limit=5)
         if not movies:
-            st.warning("No movies found in the selected genres with a score higher than 6.5!")
+            st.warning("No movies found in the selected genres with an IMDb score higher than 6.5!")
         for movie in movies:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -152,7 +157,7 @@ if submit_button:
         st.header(f"📺 TV Show Suggestions")
         tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=True, limit=5)
         if not tv_shows:
-            st.warning("No TV shows found in the selected genres with a score higher than 6.5!")
+            st.warning("No TV shows found in the selected genres with an IMDb score higher than 6.5!")
         for tv_show in tv_shows:
             release_year = tv_show.get("first_air_date", "").split("-")[0]
             st.image(POSTER_URL + tv_show["poster_path"], width=300)
