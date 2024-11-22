@@ -139,7 +139,7 @@ submit_button = st.button("Submit")
 if submit_button:
     if mode == "Movies" and selected_genre_names:
         st.header(f"🎥 Movie Suggestions")
-        movies = fetch_movies(genre_id=selected_genre_ids, randomize=True, limit=3)
+        movies = fetch_movies(genre_id=selected_genre_ids, randomize=True, limit=5)
         for movie in movies:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -149,7 +149,7 @@ if submit_button:
     
     elif mode == "TV Shows" and selected_genre_names:
         st.header(f"📺 TV Show Suggestions")
-        tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=True, limit=3)
+        tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=True, limit=5)
         for tv_show in tv_shows:
             release_year = tv_show.get("first_air_date", "").split("-")[0]
             st.image(POSTER_URL + tv_show["poster_path"], width=300)
