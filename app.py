@@ -1,158 +1,141 @@
+TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
+
 import random
 import streamlit as st
 import requests
-from PIL import Image
 
 # TMDb API key
-TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
 BASE_URL = "https://api.themoviedb.org/3/"
 POSTER_URL = "https://image.tmdb.org/t/p/w500/"
 
-# Main App
-st.title("Need a Movie for Tonight?")
-st.subheader("Let Me Surprise You 😉✨🎬")
-st.markdown("Tired of endless scrolling? Let me pick the perfect movie or TV show for you!")
-
-# # Mode Selection using radio button (Movies or TV Shows)
-# mode = st.radio(
-#     "Select Mode",
-#     options=["Movies", "TV Shows"],  # List of options
-#     help="Choose between Movies or TV Shows"
-# )
-
-# Priority genres: Horror, Thriller, Mystery
-priority_genres = [{"id": 27, "name": "Horror"}, {"id": 53, "name": "Thriller"}, {"id": 9648, "name": "Mystery"}]
-
-# Fetch all genres for both Movies and TV Shows
+# Fetch all genres
 def fetch_all_genres():
-    """Fetches all genres for both movies and TV shows from the TMDb API."""
-    movie_genres_response = requests.get(
+    """Fetches all genres from the TMDb API."""
+    response = requests.get(
         f"{BASE_URL}genre/movie/list",
         params={"api_key": TMDB_API_KEY}
     )
-    tv_genres_response = requests.get(
-        f"{BASE_URL}genre/tv/list",
-        params={"api_key": TMDB_API_KEY}
-    )
-    movie_genres = movie_genres_response.json().get("genres", [])
-    tv_genres = tv_genres_response.json().get("genres", [])
-    return movie_genres, tv_genres
+    genres = response.json().get("genres", [])
+    return genres
 
-# Fetch all genres for movies and TV shows
-movie_genres, tv_genres = fetch_all_genres()
-
-# Genre Selection: Place priority genres at the top
-all_genres = priority_genres + [g for g in movie_genres + tv_genres if g["name"] not in ["Horror", "Thriller", "Mystery"]]
-
-# User selects genres (priority genres will always appear at the top)
-selected_genre_names = st.multiselect(
-    "Select Genre(s)",
-    [g["name"] for g in all_genres],  # All genres, with priority genres at the top
-    default=[g["name"] for g in priority_genres],  # Default to the priority genres
-    help="Select one or more genres to filter suggestions"
-)
-
-# Get the selected genre IDs
-selected_genre_ids = []
-for genre in movie_genres + tv_genres:
-    if genre["name"] in selected_genre_names:
-        selected_genre_ids.append(genre["id"])
-for genre in priority_genres:
-    if genre["name"] in selected_genre_names:
-        selected_genre_ids.append(genre["id"])
-
-# Modify movie fetching functions to work with the selected genres and include random year and IMDb score condition
-def fetch_movies(genre_ids=None, randomize=False, limit=3):
-    """Fetches random movies using TMDb API based on selected genres and adult filter."""
-    # Random year between 1999 and current year
-    current_year = 2024  # Adjust to the current year dynamically if needed
-    random_year = random.randint(1999, current_year)
-
+# Fetch movies by genre, filter for adults, exclude animation, and restrict by release date
+def fetch_movies(genre_id=None, randomize=False, limit=3):
+    """Fetches movies using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        "vote_average.gte": 6,  # IMDb score must be greater than 6
+        "sort_by": "vote_average.desc",
+        "vote_count.gte": 50,
         "include_adult": True,  # Only movies for adults
         "without_genres": "16",  # Exclude animated movies
-        "primary_release_year": random_year,  # Random year filter
-        "sort_by": "popularity.desc",  # Sort by popularity
+        "primary_release_date.gte": "1999-01-01",  # Filter movies released after 1999
     }
-    if genre_ids:
-        params["with_genres"] = ",".join(map(str, genre_ids))  # Multiple genres
-    
+    if genre_id:
+        params["with_genres"] = genre_id
+
     response = requests.get(f"{BASE_URL}discover/movie", params=params)
     movies = response.json().get("results", [])
     
     if randomize:
         movies = random.sample(movies, min(len(movies), limit))
     
-    return movies[:limit]  # Return the top 3 random movies
+    return movies[:limit]  # Only return the top 3 movies
 
-import random
-
-# Updated fetch_tv_shows function to handle multiple genres and fetch random results
-def fetch_tv_shows(genre_ids=None, randomize=False, limit=3):
-    """Fetches TV shows using TMDb API based on genre(s) and adult filter."""
+# Fetch TV shows by genre, filter for adults, exclude animation
+def fetch_tv_shows(genre_id=None, randomize=False, limit=3):
+    """Fetches TV shows using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        "vote_count.gte": 6,
+        "sort_by": "vote_average.desc",
+        "vote_count.gte": 50,
         "include_adult": True,  # Only TV shows for adults
-        # "without_genres": "16",  # Exclude animated TV shows
+        "without_genres": "16",  # Exclude animated TV shows
         "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
     }
-    if genre_ids:
-        params["with_genres"] = ",".join(map(str, genre_ids))  # Pass genre IDs as a comma-separated string
-    
-    # Send the request to the API
+    if genre_id:
+        params["with_genres"] = genre_id
+
     response = requests.get(f"{BASE_URL}discover/tv", params=params)
     tv_shows = response.json().get("results", [])
     
-    if randomize and tv_shows:
-        # Randomly shuffle the results and select the first one
+    if randomize:
         tv_shows = random.sample(tv_shows, min(len(tv_shows), limit))
     
-    return tv_shows[:limit]  # Only return the top TV shows, limited by 'limit' (usually 1 if randomize is true)
+    return tv_shows[:limit]  # Only return the top 3 TV shows
 
-# Updated Surprise Me functionality to handle multiple genres for TV shows
+# Fetch random movies or TV shows from specific genres for the Surprise Me button
 def fetch_surprise_me_movies_or_tv_shows(is_tv_show=False):
-    """Fetch a random movie or TV show from selected genres."""
-    if not is_tv_show:
-        return fetch_movies(genre_ids=selected_genre_ids, randomize=True, limit=1)
+    """Fetch a random movie or TV show from Horror, Thriller, or Mystery genres."""
+    genre_ids = [27, 53, 9648]  # Horror, Thriller, Mystery
+    genre_id = random.choice(genre_ids)
+    if is_tv_show:
+        return fetch_tv_shows(genre_id=genre_id, randomize=True, limit=1)
     else:
-        # For TV shows, return a random result from the selected genres
-        return fetch_tv_shows(genre_ids=selected_genre_ids, randomize=True, limit=1)
+        return fetch_movies(genre_id=genre_id, randomize=True, limit=1)
+
+# Main App
+st.title("Need a Movie or Show for Tonight? Let Me Surprise You 😉✨🎬")
+st.markdown("Tired of endless scrolling? Let me pick the perfect movie or TV show for you!")
+
+# Mode Selection using radio button (Movies or TV Shows)
+mode = st.radio(
+    "Select Mode",
+    options=["Movies", "TV Shows"],  # List of options
+    help="Choose between Movies or TV Shows"
+)
+
+# Fetch all genres for Movies and TV Shows
+genres = fetch_all_genres()
+
+# Reorder genres to prioritize Horror, Thriller, Mystery
+priority_genres = [{"id": 27, "name": "Horror"}, {"id": 53, "name": "Thriller"}, {"id": 9648, "name": "Mystery"}]
+other_genres = [g for g in genres if g["id"] not in [27, 53, 9648]]
+all_genres = priority_genres + other_genres
+
+
+# Genre Selection Filter: Use multiselect for genre selection
+genre_buttons = [g["name"] for g in all_genres]
+selected_genre_names = st.multiselect(
+    "Select Genre(s)",
+    genre_buttons,
+    default=["Horror", "Thriller", "Mystery"],  # Default genres
+    help="You can select multiple genres or type to search",
+)
+
+# Determine the selected genre IDs based on user input
+selected_genre_ids = [g["id"] for g in all_genres if g["name"] in selected_genre_names]
 
 # "Surprise Me" Button
 surprise_me_button = st.button("Surprise Me")
-st.markdown("Whether you're in the mood for something thrilling, spooky, or just a bit of mystery, hit the 'Surprise Me' button, and let the movie magic begin! 🍿🎬")
+st.markdown(" Whether you're in the mood for something thrilling, spooky, or just a bit of mystery, I've got you covered. Hit the 'Surprise Me' button, and let the movie magic begin! 🍿🎬")
 
+# If "Surprise Me" is clicked
 if surprise_me_button:
     st.header("🎉 Surprise Me!")
-    # if mode == "Movies":
-    random_movie = fetch_surprise_me_movies_or_tv_shows(is_tv_show=False)
-    for movie in random_movie:
+    if mode == "Movies":
+        random_movie = fetch_surprise_me_movies_or_tv_shows(is_tv_show=False)
+        for movie in random_movie:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
             st.subheader(f"{movie['title']} ({release_year})")
             st.write(movie["overview"])
             st.write(f"**IMDb Score:** {movie['vote_average']}")
-    # elif mode == "TV Shows":
-    #     random_tv_show = fetch_surprise_me_movies_or_tv_shows(is_tv_show=True)
-    #     for tv_show in random_tv_show:
-    #         release_year = tv_show.get("first_air_date", "").split("-")[0]
-    #         st.image(POSTER_URL + tv_show["poster_path"], width=300)
-    #         st.subheader(f"{tv_show['name']} ({release_year})")
-    #         st.write(tv_show["overview"])
-    #         st.write(f"**IMDb Score:** {tv_show['vote_average']}")
+    elif mode == "TV Shows":
+        random_tv_show = fetch_surprise_me_movies_or_tv_shows(is_tv_show=True)
+        for tv_show in random_tv_show:
+            release_year = tv_show.get("first_air_date", "").split("-")[0]
+            st.image(POSTER_URL + tv_show["poster_path"], width=300)
+            st.subheader(f"{tv_show['name']} ({release_year})")
+            st.write(tv_show["overview"])
+            st.write(f"**IMDb Score:** {tv_show['vote_average']}")
 
-
-# Submit Button to fetch results based on selected genres
+# Submit Button to fetch results
 submit_button = st.button("Submit")
-st.markdown("Click 'Submit' to discover 3 more exciting suggestions in your chosen genre!")
 
+# Show Results after user clicks Submit
 if submit_button:
-    if selected_genre_names:
+    if mode == "Movies" and selected_genre_names:
         st.header(f"🎥 Movie Suggestions")
-        movies = fetch_movies(genre_ids=selected_genre_ids, randomize=True, limit=3)
+        movies = fetch_movies(genre_id=selected_genre_ids, randomize=True, limit=3)
         for movie in movies:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -160,12 +143,12 @@ if submit_button:
             st.write(movie["overview"])
             st.write(f"**IMDb Score:** {movie['vote_average']}")
     
-    # elif mode == "TV Shows" and selected_genre_names:
-    #     st.header(f"📺 TV Show Suggestions")
-    #     tv_shows = fetch_tv_shows(genre_ids=selected_genre_ids, randomize=True, limit=3)
-    #     for tv_show in tv_shows:
-    #         release_year = tv_show.get("first_air_date", "").split("-")[0]
-    #         st.image(POSTER_URL + tv_show["poster_path"], width=300)
-    #         st.subheader(f"{tv_show['name']} ({release_year})")
-    #         st.write(tv_show["overview"])
-    #         st.write(f"**IMDb Score:** {tv_show['vote_average']}")
+    elif mode == "TV Shows" and selected_genre_names:
+        st.header(f"📺 TV Show Suggestions")
+        tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=True, limit=3)
+        for tv_show in tv_shows:
+            release_year = tv_show.get("first_air_date", "").split("-")[0]
+            st.image(POSTER_URL + tv_show["poster_path"], width=300)
+            st.subheader(f"{tv_show['name']} ({release_year})")
+            st.write(tv_show["overview"])
+            st.write(f"**IMDb Score:** {tv_show['vote_average']}") 
