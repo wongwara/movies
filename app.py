@@ -130,12 +130,13 @@ if surprise_me_button:
         random_tv_show = fetch_surprise_me_movies_or_tv_shows(is_tv_show=True)
         if not random_tv_show:
             st.warning("No TV shows found in the selected genres with a score higher than 6.5!")
-        for tv_show in random_tv_show:
-            release_year = tv_show.get("first_air_date", "").split("-")[0]
-            st.image(POSTER_URL + tv_show["poster_path"], width=300)
-            st.subheader(f"{tv_show['name']} ({release_year})")
-            st.write(tv_show["overview"])
-            st.write(f"**IMDb Score:** {tv_show['vote_average']}")
+        else:
+            for tv_show in random_tv_show:
+                release_year = tv_show.get("first_air_date", "").split("-")[0]
+                st.image(POSTER_URL + tv_show["poster_path"], width=300)
+                st.subheader(f"{tv_show['name']} ({release_year})")
+                st.write(tv_show["overview"])
+                st.write(f"**IMDb Score:** {tv_show['vote_average']}")
 
 # Submit Button to fetch results
 submit_button = st.button("Submit")
