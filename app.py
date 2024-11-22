@@ -1,13 +1,10 @@
-
-TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
-
 import random
 import streamlit as st
 import requests
 from PIL import Image
 
 # TMDb API key
-
+TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
 BASE_URL = "https://api.themoviedb.org/3/"
 POSTER_URL = "https://image.tmdb.org/t/p/w500/"
 
@@ -73,7 +70,7 @@ def fetch_movies(genre_ids=None, randomize=False, limit=3):
 
     params = {
         "api_key": TMDB_API_KEY,
-        "vote_average.gte": 6.5,  # IMDb score must be greater than 6
+        "vote_average.gte": 6,  # IMDb score must be greater than 6
         "include_adult": True,  # Only movies for adults
         "without_genres": "16",  # Exclude animated movies
         "primary_release_year": random_year,  # Random year filter
@@ -90,30 +87,42 @@ def fetch_movies(genre_ids=None, randomize=False, limit=3):
     
     return movies[:limit]  # Return the top 3 random movies
 
+# Fetch TV shows by genre, filter for adults, exclude animation
 def fetch_tv_shows(genre_ids=None, randomize=False, limit=3):
-    """Fetches random TV shows using TMDb API based on selected genres and adult filter."""
-    # Random year between 1999 and current year
-    current_year = 2024  # Adjust to the current year dynamically if needed
-    random_year = random.randint(1999, current_year)
-
+    """Fetches TV shows using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        "vote_average.gte": 6.5,  # IMDb score must be greater than 6
+        "sort_by": "vote_average.desc",
+        "vote_count.gte": 50,
         "include_adult": True,  # Only TV shows for adults
         "without_genres": "16",  # Exclude animated TV shows
-        "first_air_date.year": random_year,  # Random year filter
-        "sort_by": "popularity.desc",  # Sort by popularity
+        "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
     }
+
+    # Apply genre filter if genre_ids are provided
     if genre_ids:
         params["with_genres"] = ",".join(map(str, genre_ids))  # Multiple genres
     
+    # Make the request to fetch TV shows
     response = requests.get(f"{BASE_URL}discover/tv", params=params)
-    tv_shows = response.json().get("results", [])
+
+    # Check for successful response and handle errors
+    if response.status_code != 200:
+        st.error(f"API error: {response.status_code}")
+        st.write(response.text)
     
+    tv_shows = response.json().get("results", [])
+
+    # Debugging: Check if there are TV shows for the selected genres
+    if not tv_shows:
+        st.write("No TV shows found for the selected genres.")
+
+    # Randomize the TV shows if needed
     if randomize:
         tv_shows = random.sample(tv_shows, min(len(tv_shows), limit))
     
-    return tv_shows[:limit]  # Return the top 3 random TV shows
+    return tv_shows[:limit]  # Only return the top 3 TV shows
+
 
 # Surprise Me Button functionality
 def fetch_surprise_me_movies_or_tv_shows(is_tv_show=False):
