@@ -118,6 +118,8 @@ if surprise_me_button:
     st.header("🎉 Surprise Me!")
     if mode == "Movies":
         random_movie = fetch_surprise_me_movies_or_tv_shows(is_tv_show=False)
+        if not random_movie:
+            st.warning("No movies found in the selected genres with a score higher than 6.5!")
         for movie in random_movie:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -126,6 +128,8 @@ if surprise_me_button:
             st.write(f"**IMDb Score:** {movie['vote_average']}")
     elif mode == "TV Shows":
         random_tv_show = fetch_surprise_me_movies_or_tv_shows(is_tv_show=True)
+        if not random_tv_show:
+            st.warning("No TV shows found in the selected genres with a score higher than 6.5!")
         for tv_show in random_tv_show:
             release_year = tv_show.get("first_air_date", "").split("-")[0]
             st.image(POSTER_URL + tv_show["poster_path"], width=300)
@@ -141,6 +145,8 @@ if submit_button:
     if mode == "Movies" and selected_genre_names:
         st.header(f"🎥 Movie Suggestions")
         movies = fetch_movies(genre_id=selected_genre_ids, randomize=True, limit=5)
+        if not movies:
+            st.warning("No movies found in the selected genres with a score higher than 6.5!")
         for movie in movies:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -151,6 +157,8 @@ if submit_button:
     elif mode == "TV Shows" and selected_genre_names:
         st.header(f"📺 TV Show Suggestions")
         tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=True, limit=5)
+        if not tv_shows:
+            st.warning("No TV shows found in the selected genres with a score higher than 6.5!")
         for tv_show in tv_shows:
             release_year = tv_show.get("first_air_date", "").split("-")[0]
             st.image(POSTER_URL + tv_show["poster_path"], width=300)
