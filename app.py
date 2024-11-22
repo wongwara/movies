@@ -1,4 +1,3 @@
-TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
 
 TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
 
@@ -74,7 +73,7 @@ def fetch_movies(genre_ids=None, randomize=False, limit=3):
 
     params = {
         "api_key": TMDB_API_KEY,
-        "vote_average.gte": 6,  # IMDb score must be greater than 6
+        "vote_average.gte": 6.5,  # IMDb score must be greater than 6
         "include_adult": True,  # Only movies for adults
         "without_genres": "16",  # Exclude animated movies
         "primary_release_year": random_year,  # Random year filter
