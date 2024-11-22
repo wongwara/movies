@@ -62,16 +62,15 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
     
     return tv_shows[:limit]  # Only return the top 3 TV shows
 
-def fetch_surprise_me_movies_or_tv_shows():
-    """Fetch a random movie and TV show from Horror, Thriller, or Mystery genres."""
+# Fetch random movies or TV shows from specific genres for the Surprise Me button
+def fetch_surprise_me_movies_or_tv_shows(is_tv_show=False):
+    """Fetch a random movie or TV show from Horror, Thriller, or Mystery genres."""
     genre_ids = [27, 53, 9648]  # Horror, Thriller, Mystery
     genre_id = random.choice(genre_ids)
-    
-    random_movie = fetch_movies(genre_id=genre_id, randomize=True, limit=1)
-    random_tv_show = fetch_tv_shows(genre_id=genre_id, randomize=True, limit=1)
-    
-    return random_movie, random_tv_show
-
+    if is_tv_show:
+        return fetch_tv_shows(genre_id=genre_id, randomize=True, limit=2)
+    else:
+        return fetch_movies(genre_id=genre_id, randomize=True, limit=2) this should give me random movie and tv shows isn't it
 
 # Main App
 st.title("Need a Movie or Show for Tonight? Let Me Surprise You 😉✨🎬")
