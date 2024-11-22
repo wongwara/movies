@@ -19,7 +19,7 @@ def fetch_all_genres():
     return genres
 
 # Fetch movies by genre, filter for adults, exclude animation, and restrict by release date
-def fetch_movies(genre_id=None, randomize=True, limit=3):
+def fetch_movies(genre_id=None, randomize=True, limit=5):
     """Fetches movies using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
@@ -38,10 +38,10 @@ def fetch_movies(genre_id=None, randomize=True, limit=3):
     if randomize:
         movies = random.sample(movies, min(len(movies), limit))
     
-    return movies[:limit]  # Only return the top 3 movies
+    return movies[:limit]  # Only return the top 5 movies
 
 # Fetch TV shows by genre, filter for adults, exclude animation
-def fetch_tv_shows(genre_id=None, randomize=True, limit=3):
+def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
     """Fetches TV shows using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
@@ -62,15 +62,16 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=3):
     
     return tv_shows[:limit]  # Only return the top 3 TV shows
 
-# Fetch random movies or TV shows from specific genres for the Surprise Me button
-def fetch_surprise_me_movies_or_tv_shows(is_tv_show=False):
-    """Fetch a random movie or TV show from Horror, Thriller, or Mystery genres."""
+def fetch_surprise_me_movies_or_tv_shows():
+    """Fetch a random movie and TV show from Horror, Thriller, or Mystery genres."""
     genre_ids = [27, 53, 9648]  # Horror, Thriller, Mystery
     genre_id = random.choice(genre_ids)
-    if is_tv_show:
-        return fetch_tv_shows(genre_id=genre_id, randomize=True, limit=1)
-    else:
-        return fetch_movies(genre_id=genre_id, randomize=True, limit=1)
+    
+    random_movie = fetch_movies(genre_id=genre_id, randomize=True, limit=1)
+    random_tv_show = fetch_tv_shows(genre_id=genre_id, randomize=True, limit=1)
+    
+    return random_movie, random_tv_show
+
 
 # Main App
 st.title("Need a Movie or Show for Tonight? Let Me Surprise You 😉✨🎬")
