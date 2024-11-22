@@ -94,12 +94,16 @@ all_genres = priority_genres + other_genres
 
 # Genre Selection Filter: Use multiselect for genre selection
 genre_buttons = [g["name"] for g in all_genres]
+# Genre Selection Filter: Only show Horror, Thriller, and Mystery genres
 selected_genre_names = st.multiselect(
     "Select Genre(s)",
-    genre_buttons,
+    options=["Horror", "Thriller", "Mystery"],  # Only these three options
     default=["Horror", "Thriller", "Mystery"],  # Default genres
-    help="You can select multiple genres or type to search",
+    help="You can select any of the 3 genres"
 )
+
+# Ensure that only up to three genres are selected
+selected_genre_ids = [g["id"] for g in all_genres if g["name"] in selected_genre_names]
 
 # Determine the selected genre IDs based on user input
 selected_genre_ids = [g["id"] for g in all_genres if g["name"] in selected_genre_names]
@@ -135,7 +139,7 @@ submit_button = st.button("Submit")
 if submit_button:
     if mode == "Movies" and selected_genre_names:
         st.header(f"🎥 Movie Suggestions")
-        movies = fetch_movies(genre_id=selected_genre_ids, randomize=True, limit=3)
+        movies = fetch_movies(genre_id=selected_genre_ids, randomize=False, limit=3)
         for movie in movies:
             release_year = movie.get("release_date", "").split("-")[0]
             st.image(POSTER_URL + movie["poster_path"], width=300)
@@ -145,7 +149,7 @@ if submit_button:
     
     elif mode == "TV Shows" and selected_genre_names:
         st.header(f"📺 TV Show Suggestions")
-        tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=True, limit=3)
+        tv_shows = fetch_tv_shows(genre_id=selected_genre_ids, randomize=False, limit=3)
         for tv_show in tv_shows:
             release_year = tv_show.get("first_air_date", "").split("-")[0]
             st.image(POSTER_URL + tv_show["poster_path"], width=300)
