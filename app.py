@@ -23,7 +23,7 @@ def fetch_movies(genre_id=None, randomize=True, limit=5):
     params = {
         "api_key": TMDB_API_KEY,
         # "sort_by": "vote_average.desc",
-        "vote_count.gte": 50,
+        "vote_count.gte": 25,
         "include_adult": True,  # Only movies for adults
         "primary_release_date.gte": "1999-01-01",  # Filter movies released after 1999
     }
@@ -44,7 +44,7 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
     params = {
         "api_key": TMDB_API_KEY,
         # "sort_by": "vote_average.desc",
-        "vote_count.gte": 50,
+        "vote_count.gte": 25,
         "include_adult": True,  # Only TV shows for adults
         "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
     }
