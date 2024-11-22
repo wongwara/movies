@@ -72,7 +72,7 @@ def fetch_movies(genre_ids=None, randomize=False, limit=3):
         "api_key": TMDB_API_KEY,
         "vote_average.gte": 6,  # IMDb score must be greater than 6
         "include_adult": True,  # Only movies for adults
-        # "without_genres": "16",  # Exclude animated movies
+        "without_genres": "16",  # Exclude animated movies
         "primary_release_year": random_year,  # Random year filter
         "sort_by": "popularity.desc",  # Sort by popularity
     }
@@ -96,7 +96,7 @@ def fetch_tv_shows(genre_ids=None, randomize=False, limit=3):
         "api_key": TMDB_API_KEY,
         "vote_count.gte": 6,
         "include_adult": True,  # Only TV shows for adults
-        "without_genres": "16",  # Exclude animated TV shows
+        # "without_genres": "16",  # Exclude animated TV shows
         "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
     }
     if genre_ids:
