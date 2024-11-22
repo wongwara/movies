@@ -1,11 +1,14 @@
 TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
 
+TMDB_API_KEY = "0ddbc164201d135fdbdd1e51b8e591ab"
+
 import random
 import streamlit as st
 import requests
 from PIL import Image
 
 # TMDb API key
+
 BASE_URL = "https://api.themoviedb.org/3/"
 POSTER_URL = "https://image.tmdb.org/t/p/w500/"
 
@@ -62,16 +65,20 @@ for genre in priority_genres:
     if genre["name"] in selected_genre_names:
         selected_genre_ids.append(genre["id"])
 
-# Modify movie fetching functions to work with the selected genres
+# Modify movie fetching functions to work with the selected genres and include random year and IMDb score condition
 def fetch_movies(genre_ids=None, randomize=False, limit=3):
-    """Fetches movies using TMDb API based on selected genres and adult filter."""
+    """Fetches random movies using TMDb API based on selected genres and adult filter."""
+    # Random year between 1999 and current year
+    current_year = 2024  # Adjust to the current year dynamically if needed
+    random_year = random.randint(1999, current_year)
+
     params = {
         "api_key": TMDB_API_KEY,
-        "sort_by": "popularity.desc",  # Sort by popularity
-        "vote_count.gte": 50,
+        "vote_average.gte": 6,  # IMDb score must be greater than 6
         "include_adult": True,  # Only movies for adults
         "without_genres": "16",  # Exclude animated movies
-        "primary_release_date.gte": "1999-01-01",  # Filter movies released after 1999
+        "primary_release_year": random_year,  # Random year filter
+        "sort_by": "popularity.desc",  # Sort by popularity
     }
     if genre_ids:
         params["with_genres"] = ",".join(map(str, genre_ids))  # Multiple genres
@@ -85,14 +92,18 @@ def fetch_movies(genre_ids=None, randomize=False, limit=3):
     return movies[:limit]  # Return the top 3 random movies
 
 def fetch_tv_shows(genre_ids=None, randomize=False, limit=3):
-    """Fetches TV shows using TMDb API based on selected genres and adult filter."""
+    """Fetches random TV shows using TMDb API based on selected genres and adult filter."""
+    # Random year between 1999 and current year
+    current_year = 2024  # Adjust to the current year dynamically if needed
+    random_year = random.randint(1999, current_year)
+
     params = {
         "api_key": TMDB_API_KEY,
-        "sort_by": "popularity.desc",  # Sort by popularity
-        "vote_count.gte": 50,
+        "vote_average.gte": 6.5,  # IMDb score must be greater than 6
         "include_adult": True,  # Only TV shows for adults
         "without_genres": "16",  # Exclude animated TV shows
-        "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
+        "first_air_date.year": random_year,  # Random year filter
+        "sort_by": "popularity.desc",  # Sort by popularity
     }
     if genre_ids:
         params["with_genres"] = ",".join(map(str, genre_ids))  # Multiple genres
