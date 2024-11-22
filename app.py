@@ -22,9 +22,9 @@ def fetch_movies(genre_id=None, randomize=True, limit=5):
     """Fetches movies using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        "sort_by": "vote_average.desc",  # Sort by highest vote average
+        # "sort_by": "vote_average.desc",  # Sort by highest vote average
         "include_adult": True,  # Only movies for adults
-        "without_genres": "16",  # Exclude animated movies
+        # "without_genres": "16",  # Exclude animated movies
         "primary_release_date.gte": "1999-01-01",  # Filter movies released after 1999
     }
     if genre_id:
@@ -46,9 +46,9 @@ def fetch_tv_shows(genre_id=None, randomize=True, limit=5):
     """Fetches TV shows using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
-        "sort_by": "vote_average.desc",  # Sort by highest vote average
+        # "sort_by": "vote_average.desc",  # Sort by highest vote average
         "include_adult": True,  # Only TV shows for adults
-        "without_genres": "16",  # Exclude animated TV shows
+        # "without_genres": "16",  # Exclude animated TV shows
         "first_air_date.gte": "1999-01-01",  # Filter TV shows released after 1999
     }
     if genre_id:
