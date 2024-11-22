@@ -9,7 +9,8 @@ BASE_URL = "https://api.themoviedb.org/3/"
 POSTER_URL = "https://image.tmdb.org/t/p/w500/"
 
 # Main App
-st.title("Need a Movie or Show for Tonight? Let Me Surprise You 😉✨🎬")
+st.title("Need a Movie or Show for Tonight?")
+st.subheader("Let Me Surprise You 😉✨🎬")
 st.markdown("Tired of endless scrolling? Let me pick the perfect movie or TV show for you!")
 
 # Mode Selection using radio button (Movies or TV Shows)
