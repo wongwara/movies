@@ -19,7 +19,7 @@ def fetch_all_genres():
     return genres
 
 # Fetch movies by genre, filter for adults, exclude animation, and restrict by release date
-def fetch_movies(genre_id=None, randomize=False, limit=3):
+def fetch_movies(genre_id=None, randomize=True, limit=3):
     """Fetches movies using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
@@ -41,7 +41,7 @@ def fetch_movies(genre_id=None, randomize=False, limit=3):
     return movies[:limit]  # Only return the top 3 movies
 
 # Fetch TV shows by genre, filter for adults, exclude animation
-def fetch_tv_shows(genre_id=None, randomize=False, limit=3):
+def fetch_tv_shows(genre_id=None, randomize=True, limit=3):
     """Fetches TV shows using TMDb API based on genre and adult filter."""
     params = {
         "api_key": TMDB_API_KEY,
